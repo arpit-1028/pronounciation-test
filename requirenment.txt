@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+nltk
+allosaurus
+python-multipart
+librosa
+soundfile
