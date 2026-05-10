@@ -12,4 +12,4 @@ def score(results):
         elif r["type"] == "extra":
             points += 0
 
-    return round(points / total, 2)
+    return round((points / total)*100, 2)
