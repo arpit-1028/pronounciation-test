@@ -1,4 +1,12 @@
 
+---
+title: Pronunciation Coach Api
+emoji: 📉
+colorFrom: pink
+colorTo: red
+sdk: docker
+pinned: false
+---
 # AI Speech Coach 🎙️
 
 An AI-powered pronunciation assessment system that analyzes spoken audio, converts speech into phonemes using Wav2Vec2, and provides pronunciation accuracy scores with feedback.
@@ -145,16 +153,7 @@ This project can be deployed on:
 * Multi-language pronunciation support
 * Mobile app integration
 
----
 
 
-title: Pronunciation Coach Api
-emoji: 📉
-colorFrom: pink
-colorTo: red
-sdk: docker
-pinned: false
 
 
-Check out the configuration reference at https://huggingface.co/docs/hub/spaces-config-reference
- 37fc6e61781b0c32522b5169268bc80be86bae92
