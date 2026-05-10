@@ -30,14 +30,7 @@ async def check(word: str, audio: UploadFile = File(...)):
 
     print("FILE SAVED:", file_path)
 
-    # Step 2: expected pronunciation
-    expected_cmu = get_phonemes(word)
-    expected = normalize(expected_cmu, CMU_TO_INTERNAL)
-
-    print("CMU RAW:", expected_cmu)
-    print("EXPECTED:", expected)
-
-    # Step 3: convert audio → phonemes
+    # Step 2: convert audio → phonemes
     from app.core.spoken_normalizer import normalize_spoken
 
     print("CALLING RECOGNIZER...")
@@ -47,8 +40,18 @@ async def check(word: str, audio: UploadFile = File(...)):
     spoken = normalize_spoken(spoken_raw)
     print("NORMALIZED SPOKEN:", spoken)
 
-    best_word,sc,results=find_best_match(spoken, WORD_DICT)
-    fb=generate_feedback(results)
+    # Step 3: get expected phonemes (from test dict or fallback)
+    target = word.lower()
+    if target in WORD_DICT:
+        expected = WORD_DICT[target]
+        print("FOUND IN WORD_DICT:", expected)
+    else:
+        expected_cmu = get_phonemes(word)
+        expected = normalize(expected_cmu, CMU_TO_INTERNAL)
+        print("FALLBACK TO CMU:", expected)
+
+    # Step 4: compare exact match
+    results = compare(expected, spoken)
 
     # Step 5: score
     sc = score(results)
@@ -57,9 +60,9 @@ async def check(word: str, audio: UploadFile = File(...)):
     fb = generate_feedback(results)
 
     return {
-    "expected_word": word,
-    "detected_word": best_word,
-    "spoken": spoken,
-    "score": sc,
-    "feedback": fb
-}
+        "expected_word": target,
+        "detected_word": target,
+        "spoken": spoken,
+        "score": sc,
+        "feedback": fb
+    }

@@ -1,4 +1,11 @@
+import nltk
 from nltk.corpus import cmudict
+
+# Automatically download cmudict if not present on the deployment server
+try:
+    nltk.data.find('corpora/cmudict')
+except LookupError:
+    nltk.download('cmudict')
 
 d = cmudict.dict()
 

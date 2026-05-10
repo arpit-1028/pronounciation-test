@@ -1,7 +1,9 @@
 fastapi
 uvicorn
 nltk
-allosaurus
+transformers
+torch
 python-multipart
 librosa
 soundfile
+phonemizer

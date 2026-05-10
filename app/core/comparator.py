@@ -1,3 +1,5 @@
+from difflib import SequenceMatcher
+
 SIMILAR = {
     "n": ["ng"],
     "ng": ["n"],
@@ -8,22 +10,23 @@ SIMILAR = {
 
 def compare(expected, spoken):
     results = []
-    min_len = min(len(expected), len(spoken))
-
-    for i in range(min_len):
-        if expected[i] == spoken[i]:
-            results.append({"type": "correct"})
-        else:
-            results.append({"type": "wrong"})
-
-    # missing sounds
-    if len(expected) > len(spoken):
-        for _ in range(len(expected) - len(spoken)):
-            results.append({"type": "missing"})
-
-    # extra sounds
-    if len(spoken) > len(expected):
-        for _ in range(len(spoken) - len(expected)):
-            results.append({"type": "extra"})
+    
+    # Use SequenceMatcher to align the phoneme arrays intelligently
+    # This prevents an extra sound at the beginning from breaking the whole word
+    sm = SequenceMatcher(None, expected, spoken)
+    
+    for tag, i1, i2, j1, j2 in sm.get_opcodes():
+        if tag == 'equal':
+            for _ in range(i1, i2):
+                results.append({"type": "correct"})
+        elif tag == 'replace':
+            for _ in range(i1, i2):
+                results.append({"type": "wrong"})
+        elif tag == 'delete':
+            for _ in range(i1, i2):
+                results.append({"type": "missing"})
+        elif tag == 'insert':
+            for _ in range(j1, j2):
+                results.append({"type": "extra"})
 
     return results
