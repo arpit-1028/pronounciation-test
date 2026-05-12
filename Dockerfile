@@ -10,8 +10,8 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /code
 
 # Copy requirements and install them
-COPY requirenment.txt .
-RUN pip install --no-cache-dir -r requirenment.txt
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Pre-download the Wav2Vec2 model so it doesn't download on every request
 RUN python -c "from transformers import Wav2Vec2Processor, Wav2Vec2ForCTC; \
