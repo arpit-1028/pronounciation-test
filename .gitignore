@@ -4,3 +4,9 @@ __pycache__/
 *.wav
 *.mp3
 .env
+
+# Frontend
+node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local

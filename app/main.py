@@ -1,4 +1,5 @@
 from fastapi import FastAPI, UploadFile, File
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.services.cmu_service import get_phonemes
 from app.phonemes.cmu_map import CMU_TO_INTERNAL
@@ -13,6 +14,15 @@ from app.core.matcher import find_best_match
 import shutil
 
 app = FastAPI()
+
+# CORS — allow frontend (Vercel/localhost) to call this API
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/")
 def root():
@@ -62,7 +72,9 @@ async def check(word: str, audio: UploadFile = File(...)):
     return {
         "expected_word": target,
         "detected_word": target,
-        "spoken": spoken,
+        "expected_phonemes": expected,
+        "spoken_phonemes": spoken,
+        "comparison": results,
         "score": sc,
         "feedback": fb
     }
