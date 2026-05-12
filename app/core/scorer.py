@@ -7,9 +7,13 @@ def score(results):
             points += 1
         elif r["type"] == "wrong":
             points += 0.3
+        elif r["type"] == "similar":
+            # Partial credit for acoustically similar phonemes
+            points += 0.7
         elif r["type"] == "missing":
             points += 0
         elif r["type"] == "extra":
             points += 0
+
 
     return round((points / total)*100, 2)
