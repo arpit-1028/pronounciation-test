@@ -11,6 +11,7 @@ export default function App() {
   const [activeCategory, setActiveCategory] = useState(wordCategories[0].id);
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
+  const [accent, setAccent] = useState('auto'); // auto | indian | british
 
   // Navigate to practice screen
   const handleSelectWord = useCallback((word) => {
@@ -59,7 +60,7 @@ export default function App() {
 
   return (
     <>
-      <Header view={view} onBack={handleBack} />
+      <Header view={view} onBack={handleBack} accent={accent} onAccentChange={setAccent} />
 
       <main className="main">
         {view === 'home' && (
@@ -74,6 +75,7 @@ export default function App() {
         {view === 'practice' && selectedWord && (
           <PracticeView
             word={selectedWord}
+            accent={accent}
             onResult={handleResult}
             onError={handleError}
           />

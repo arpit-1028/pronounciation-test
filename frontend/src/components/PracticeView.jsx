@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { AudioRecorder } from '../utils/audioUtils';
 
-export default function PracticeView({ word, onResult, onError }) {
+export default function PracticeView({ word, accent = 'auto', onResult, onError }) {
   const [status, setStatus] = useState('ready'); // ready | recording | processing
   const [timer, setTimer] = useState(0);
   const [bars, setBars] = useState(new Array(32).fill(4));
@@ -74,7 +74,7 @@ export default function PracticeView({ word, onResult, onError }) {
 
       // Send to API
       const { checkPronunciation } = await import('../services/api.js');
-      const result = await checkPronunciation(word.text, wavBlob);
+      const result = await checkPronunciation(word.text, wavBlob, accent);
       onResult(result);
     } catch (err) {
       onError(err.message || 'Failed to process audio. Is the backend running?');

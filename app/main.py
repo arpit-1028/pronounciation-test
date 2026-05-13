@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, UploadFile, File, Query
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.services.cmu_service import get_phonemes
@@ -28,10 +28,19 @@ app.add_middleware(
 def root():
     return {"message": "Pronunciation Engine Running"}
 
+@app.get("/words")
+def list_words():
+    """Return all available words/sentences grouped for the frontend"""
+    return {"words": list(WORD_DICT.keys()), "count": len(WORD_DICT)}
+
 @app.post("/check/{word}")
-async def check(word: str, audio: UploadFile = File(...)):
-    
-    print("CHECK ENDPOINT HIT")
+async def check(
+    word: str,
+    audio: UploadFile = File(...),
+    accent: str = Query(default="auto", regex="^(auto|indian|british)$")
+):
+
+    print(f"CHECK ENDPOINT HIT — word: {word}, accent: {accent}")
 
     # Step 1: save uploaded audio file
     file_path = "input.wav"
@@ -60,10 +69,10 @@ async def check(word: str, audio: UploadFile = File(...)):
         expected = normalize(expected_cmu, CMU_TO_INTERNAL)
         print("FALLBACK TO CMU:", expected)
 
-    # Step 4: compare exact match
-    results = compare(expected, spoken)
+    # Step 4: compare with accent awareness
+    results = compare(expected, spoken, accent=accent)
 
-    # Step 5: score
+    # Step 5: score (with weighted vowels)
     sc = score(results)
 
     # Step 6: feedback
@@ -76,5 +85,6 @@ async def check(word: str, audio: UploadFile = File(...)):
         "spoken_phonemes": spoken,
         "comparison": results,
         "score": sc,
-        "feedback": fb
+        "feedback": fb,
+        "accent_used": accent
     }

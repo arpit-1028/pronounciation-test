@@ -4,46 +4,53 @@ from difflib import SequenceMatcher
 # Used to give partial credit instead of marking as completely wrong
 SIMILAR = {
     # Voiced ↔ Unvoiced pairs
-    "t": ["d", "th"],
-    "d": ["t", "dh"],
-    "p": ["b"],
-    "b": ["p", "v"],
-    "k": ["g"],
-    "g": ["k"],
-    "f": ["v", "th"],
+    "t": ["d", "th", "dh"],
+    "d": ["t", "dh", "th"],
+    "p": ["b", "f"],
+    "b": ["p", "v", "m"],
+    "k": ["g", "ch"],
+    "g": ["k", "j"],
+    "f": ["v", "th", "p"],
     "v": ["f", "b", "w"],
     "s": ["z", "sh", "th"],
-    "z": ["s", "zh", "dh"],
+    "z": ["s", "zh", "dh", "j"],
     "sh": ["s", "zh", "ch"],
     "zh": ["sh", "z", "j"],
-    "ch": ["sh", "j", "t"],
-    "j": ["ch", "zh", "g"],
+    "ch": ["sh", "j", "t", "k"],
+    "j": ["ch", "zh", "g", "z"],
     "th": ["t", "f", "s", "dh"],
-    "dh": ["d", "z", "th"],
+    "dh": ["d", "z", "th", "t"],
+    "h": ["a"],
 
     # Nasal similarities
-    "n": ["ng", "m"],
-    "ng": ["n", "m"],
-    "m": ["n", "ng"],
+    "n": ["ng", "m", "d"],
+    "ng": ["n", "m", "g"],
+    "m": ["n", "ng", "b"],
 
     # Liquid/Glide similarities
-    "r": ["l", "w"],
-    "l": ["r", "n"],
-    "w": ["v", "r", "u"],
-    "y": ["i", "e"],
+    "r": ["l", "w", "d"],
+    "l": ["r", "n", "w"],
+    "w": ["v", "r", "u", "o"],
+    "y": ["i", "e", "j"],
 
-    # Vowel similarities (these are the most commonly confused)
-    "a": ["e", "o", "u", "ai"],
-    "e": ["a", "i"],
-    "i": ["e", "y", "ee"],
-    "o": ["a", "u", "au"],
-    "u": ["o", "w", "oo"],
+    # Vowel similarities (most commonly confused)
+    "a": ["e", "o", "u", "ai", "au"],
+    "e": ["a", "i", "ai"],
+    "i": ["e", "y", "ee", "a"],
+    "o": ["a", "u", "au", "oi"],
+    "u": ["o", "w", "oo", "a"],
 
     # Diphthong similarities
-    "ai": ["a", "e", "i"],
-    "au": ["o", "a", "u"],
-    "oi": ["o", "ai"],
+    "ai": ["a", "e", "i", "oi"],
+    "au": ["o", "a", "u", "aw"],
+    "oi": ["o", "ai", "i"],
+    "ee": ["i", "e"],
+    "oo": ["u", "o"],
+    "aw": ["au", "o", "a"],
 }
+
+# Vowel set for weighted scoring
+VOWELS = {"a", "e", "i", "o", "u", "ai", "au", "oi", "ee", "oo", "aw"}
 
 def _is_similar(phoneme_a, phoneme_b):
     """Check if two phonemes are acoustically similar"""
@@ -55,13 +62,20 @@ def _is_similar(phoneme_a, phoneme_b):
         return True
     return False
 
-def compare(expected, spoken):
+def _is_accent_match(phoneme_a, phoneme_b, accent="auto"):
+    """Check if the mismatch is a known accent pattern (full credit)"""
+    if accent not in ("indian", "auto"):
+        return False
+    from app.core.accent_config import ACCENT_FULL_CREDIT_PAIRS
+    pair = (phoneme_a, phoneme_b)
+    reverse = (phoneme_b, phoneme_a)
+    return pair in ACCENT_FULL_CREDIT_PAIRS or reverse in ACCENT_FULL_CREDIT_PAIRS
+
+def compare(expected, spoken, accent="auto"):
     results = []
-    
-    # Use SequenceMatcher to align the phoneme arrays intelligently
-    # This prevents an extra sound at the beginning from breaking the whole word
+
     sm = SequenceMatcher(None, expected, spoken)
-    
+
     for tag, i1, i2, j1, j2 in sm.get_opcodes():
         if tag == 'equal':
             for k in range(i2 - i1):
@@ -75,9 +89,21 @@ def compare(expected, spoken):
             for k in range(max_len):
                 exp = expected[i1 + k] if (i1 + k) < i2 else None
                 spk = spoken[j1 + k] if (j1 + k) < j2 else None
-                
-                # Check if the mismatch is a similar-sounding phoneme
-                if exp and spk and _is_similar(exp, spk):
+
+                if exp and spk and exp == spk:
+                    results.append({
+                        "type": "correct",
+                        "expected": exp,
+                        "spoken": spk
+                    })
+                elif exp and spk and _is_accent_match(exp, spk, accent):
+                    # Known accent pattern — treat as correct
+                    results.append({
+                        "type": "accent_match",
+                        "expected": exp,
+                        "spoken": spk
+                    })
+                elif exp and spk and _is_similar(exp, spk):
                     results.append({
                         "type": "similar",
                         "expected": exp,

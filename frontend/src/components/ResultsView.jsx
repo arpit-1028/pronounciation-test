@@ -105,15 +105,15 @@ export default function ResultsView({ result, word, onTryAgain, onNextWord }) {
             {comparison.map((p, i) => (
               <div
                 key={i}
-                className={`phoneme-pill phoneme-pill--${p.type}`}
+                className={`phoneme-pill phoneme-pill--${p.type === 'accent_match' ? 'accent' : p.type}`}
                 style={{ animationDelay: `${i * 0.06}s` }}
                 title={getTooltip(p)}
               >
                 <span className="phoneme-pill__icon">
-                  {p.type === 'correct' ? '✓' : p.type === 'wrong' ? '✗' : p.type === 'missing' ? '?' : '+'}
+                  {p.type === 'correct' ? '✓' : p.type === 'accent_match' ? '🇮🇳' : p.type === 'similar' ? '≈' : p.type === 'wrong' ? '✗' : p.type === 'missing' ? '?' : '+'}
                 </span>
                 <span>{p.spoken || p.expected || '—'}</span>
-                {p.type === 'wrong' && p.expected && (
+                {(p.type === 'wrong' || p.type === 'similar') && p.expected && (
                   <span className="phoneme-pill__expected">{p.expected}</span>
                 )}
               </div>
@@ -177,6 +177,8 @@ export default function ResultsView({ result, word, onTryAgain, onNextWord }) {
 function getTooltip(p) {
   switch (p.type) {
     case 'correct': return `Correct: "${p.spoken}"`;
+    case 'accent_match': return `Accent match: "${p.spoken}" (accepted for your accent)`;
+    case 'similar': return `Close: expected "${p.expected}", heard "${p.spoken}"`;
     case 'wrong': return `Expected "${p.expected}" but heard "${p.spoken}"`;
     case 'missing': return `Missing sound: "${p.expected}"`;
     case 'extra': return `Extra sound detected: "${p.spoken}"`;
